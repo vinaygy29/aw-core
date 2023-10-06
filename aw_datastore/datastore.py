@@ -27,6 +27,9 @@ class Datastore:
 
         self.storage_strategy = storage_strategy(testing=testing, **kwargs)
 
+    def init_db(self) -> bool:
+        return self.storage_strategy.init_db()
+
     def __repr__(self):
         return "<Datastore object using {}>".format(
             self.storage_strategy.__class__.__name__

@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import os
@@ -12,8 +13,9 @@ from typing import (
 import iso8601
 from aw_core.dirs import get_data_dir
 from aw_core.models import Event
+import keyring
 from playhouse.migrate import SqliteMigrator, migrate
-from playhouse.sqlite_ext import SqliteExtDatabase
+from playhouse.sqlcipher_ext import SqlCipherDatabase
 
 import peewee
 from peewee import (
@@ -24,9 +26,11 @@ from peewee import (
     ForeignKeyField,
     IntegerField,
     Model,
+    DatabaseProxy
 )
 
 from .abstract import AbstractStorage
+from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +42,30 @@ peewee_logger.setLevel(logging.INFO)
 #   See: http://docs.peewee-orm.com/en/latest/peewee/database.html#run-time-database-configuration
 # Another option would be to use peewee's Proxy.
 #   See: http://docs.peewee-orm.com/en/latest/peewee/database.html#dynamic-db
-_db = SqliteExtDatabase(None)
+db_proxy = DatabaseProxy()
+_db=None
 
 
 LATEST_VERSION = 2
 
+def decrypt_uuid(encrypted_uuid, key):
+    fernet = Fernet(key)
+    encrypted_uuid_byte = base64.urlsafe_b64decode(encrypted_uuid.encode('utf-8'))
+    decrypted_uuid = fernet.decrypt(encrypted_uuid_byte)
+    return decrypted_uuid.decode()
 
-def auto_migrate(path: str) -> None:
-    db = SqliteExtDatabase(path)
+def load_key():
+    key_string = os.environ.get('SECRET_KEY')
+    if not key_string:
+        key_string = keyring.get_password("aw_key", "aw_key")
+    if not key_string:
+        return None
+    return base64.urlsafe_b64decode(key_string.encode('utf-8'))
+
+
+def auto_migrate(db: Any, path: str) -> None:
+    db.init(path)
+    db.connect()
     migrator = SqliteMigrator(db)
 
     # check if bucketmodel has datastr field
@@ -77,8 +97,9 @@ def dt_plus_duration(dt, duration):
 
 
 class BaseModel(Model):
+
     class Meta:
-        database = _db
+        database=db_proxy
 
 
 class BucketModel(BaseModel):
@@ -135,32 +156,47 @@ class PeeweeStorage(AbstractStorage):
     sid = "peewee"
 
     def __init__(self, testing: bool = True, filepath: Optional[str] = None) -> None:
-        data_dir = get_data_dir("aw-server")
+        self.init_db()
 
-        if not filepath:
-            filename = (
-                "peewee-sqlite"
-                + ("-testing" if testing else "")
-                + f".v{LATEST_VERSION}"
-                + ".db"
-            )
-            filepath = os.path.join(data_dir, filename)
-        self.db = _db
-        self.db.init(filepath)
-        logger.info(f"Using database file: {filepath}")
-        self.db.connect()
+    def init_db(self, testing: bool = True, filepath: Optional[str] = None) -> bool:
+        db_key = keyring.get_password("aw_db", "db_key")
+        key = load_key()
+        if not db_key or not key:
+            logger.info("User account not exist")
+            return False
+        else:
+            password = decrypt_uuid(db_key, key)
+            if not password:
+                return False
+            data_dir = get_data_dir("aw-server")
 
-        self.bucket_keys: Dict[str, int] = {}
-        BucketModel.create_table(safe=True)
-        EventModel.create_table(safe=True)
+            if not filepath:
+                filename = (
+                    "peewee-sqlite"
+                    + ("-testing" if testing else "")
+                    + f".v{LATEST_VERSION}"
+                    + ".db"
+                )
+                filepath = os.path.join(data_dir, filename)
+            _db = SqlCipherDatabase(None,passphrase=password)
+            db_proxy.initialize(_db)
+            self.db = _db
+            self.db.init(filepath)
+            logger.info(f"Using database file: {filepath}")
+            self.db.connect()
 
-        # Migrate database if needed, requires closing the connection first
-        self.db.close()
-        auto_migrate(filepath)
-        self.db.connect()
+            BucketModel.create_table(safe=True)
+            EventModel.create_table(safe=True)
 
-        # Update bucket keys
-        self.update_bucket_keys()
+            # Migrate database if needed, requires closing the connection first
+            self.db.close()
+            auto_migrate(_db,filepath)
+            self.db.connect()
+
+            # Update bucket keys
+            self.update_bucket_keys()
+
+            return True
 
     def update_bucket_keys(self) -> None:
         buckets = BucketModel.select()
