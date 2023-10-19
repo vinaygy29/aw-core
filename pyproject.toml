@@ -29,6 +29,8 @@ strict-rfc3339 = "^0.7"
 tomlkit = "*"
 deprecation = "*"
 timeslot = "*"
+keyring = "*"
+cryptography = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"

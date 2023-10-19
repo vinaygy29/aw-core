@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 import os
@@ -9,6 +8,8 @@ from typing import (
     List,
     Optional,
 )
+from aw_client.client import load_key
+from aw_core.util import decrypt_uuid
 
 import iso8601
 from aw_core.dirs import get_data_dir
@@ -30,7 +31,8 @@ from peewee import (
 )
 
 from .abstract import AbstractStorage
-from cryptography.fernet import Fernet
+
+os.add_dll_directory( "C:/workspace/Ralvie/authentication/activitywatch")
 
 logger = logging.getLogger(__name__)
 
@@ -47,21 +49,6 @@ _db=None
 
 
 LATEST_VERSION = 2
-
-def decrypt_uuid(encrypted_uuid, key):
-    fernet = Fernet(key)
-    encrypted_uuid_byte = base64.urlsafe_b64decode(encrypted_uuid.encode('utf-8'))
-    decrypted_uuid = fernet.decrypt(encrypted_uuid_byte)
-    return decrypted_uuid.decode()
-
-def load_key():
-    key_string = os.environ.get('SECRET_KEY')
-    if not key_string:
-        key_string = keyring.get_password("aw_key", "aw_key")
-    if not key_string:
-        return None
-    return base64.urlsafe_b64decode(key_string.encode('utf-8'))
-
 
 def auto_migrate(db: Any, path: str) -> None:
     db.init(path)
@@ -159,8 +146,8 @@ class PeeweeStorage(AbstractStorage):
         self.init_db()
 
     def init_db(self, testing: bool = True, filepath: Optional[str] = None) -> bool:
-        db_key = keyring.get_password("aw_db", "db_key")
-        key = load_key()
+        db_key = keyring.get_password("aw_db", "aw_db")
+        key = load_key("aw_user", "aw_user")
         if not db_key or not key:
             logger.info("User account not exist")
             return False
