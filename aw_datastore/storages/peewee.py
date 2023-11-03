@@ -8,8 +8,7 @@ from typing import (
     List,
     Optional,
 )
-from aw_client.client import load_key
-from aw_core.util import decrypt_uuid
+from aw_core.util import decrypt_uuid, load_key
 
 import iso8601
 from aw_core.dirs import get_data_dir
