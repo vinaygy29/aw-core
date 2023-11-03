@@ -479,6 +479,20 @@ spelling = ["pyenchant (>=3.2,<4.0)"]
 testutils = ["gitpython (>3)"]
 
 [[package]]
+name = "pysqlcipher3"
+version = "1.2.0"
+description = "DB-API 2.0 interface for SQLCIPHER 3.x"
+optional = false
+python-versions = ">=3.3"
+files = [
+    {file = "pysqlcipher3-1.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:dd9a28aded578b925751f805f5e45425bb5f6d5f7749a531b04071d727634846"},
+]
+
+[package.source]
+type = "file"
+url = "pysqlcipher3-1.2.0-cp311-cp311-win_amd64.whl"
+
+[[package]]
 name = "pytest"
 version = "7.4.2"
 description = "pytest: simple powerful testing with Python"
@@ -705,6 +719,20 @@ files = [
 ]
 
 [[package]]
+name = "sqlcipher3"
+version = "0.5.2"
+description = "DB-API 2.0 interface for SQLCipher 3.x"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sqlcipher3-0.5.2-cp311-cp311-win_amd64.whl", hash = "sha256:bf0b59fd9131f471aed3ef17e1093bcfe7e647faf37de72d7129d95a7dee210d"},
+]
+
+[package.source]
+type = "file"
+url = "sqlcipher3-0.5.2-cp311-cp311-win_amd64.whl"
+
+[[package]]
 name = "strict-rfc3339"
 version = "0.7"
 description = "Strict, simple, lightweight RFC3339 functions"
@@ -797,4 +825,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "e8bcbf03b02ffe6321aec50f54d1e27a5e530b85f86c7f505594c9faccd50eee"
+content-hash = "316431d2c0b8ff1b16b0632bf65c96224f9630f72f9457007e5cbabcd47b5666"

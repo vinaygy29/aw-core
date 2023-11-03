@@ -19,6 +19,8 @@ packages = [
 aw-cli = "aw_cli.__main__:main"
 
 [tool.poetry.dependencies]
+pysqlcipher3 = { path = "pysqlcipher3-1.2.0-cp311-cp311-win_amd64.whl", markers = "sys_platform == 'win32'" }
+sqlcipher3 = { path = "sqlcipher3-0.5.2-cp311-cp311-win_amd64.whl", markers = "sys_platform == 'win32'" }
 python = "^3.8"
 jsonschema = "^4.3"
 peewee = "3.*"
