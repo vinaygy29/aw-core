@@ -10,6 +10,9 @@ from typing import (
 )
 from aw_core.util import decrypt_uuid, load_key
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+activitywatch_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+os.add_dll_directory(activitywatch_dir)
 import iso8601
 from aw_core.dirs import get_data_dir
 from aw_core.models import Event
