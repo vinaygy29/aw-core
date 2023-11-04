@@ -9,11 +9,14 @@ from typing import (
     Optional,
 )
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+activitywatch_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+os.add_dll_directory(activitywatch_dir)
 import iso8601
 from aw_core.dirs import get_data_dir
 from aw_core.models import Event
 from playhouse.migrate import SqliteMigrator, migrate
-from playhouse.sqlite_ext import SqliteExtDatabase
+from playhouse.sqlcipher_ext import SqlCipherDatabase
 
 import peewee
 from peewee import (
@@ -38,14 +41,14 @@ peewee_logger.setLevel(logging.INFO)
 #   See: http://docs.peewee-orm.com/en/latest/peewee/database.html#run-time-database-configuration
 # Another option would be to use peewee's Proxy.
 #   See: http://docs.peewee-orm.com/en/latest/peewee/database.html#dynamic-db
-_db = SqliteExtDatabase(None)
+_db = SqlCipherDatabase(None,passphrase="dholu11@")
 
 
 LATEST_VERSION = 2
 
 
 def auto_migrate(path: str) -> None:
-    db = SqliteExtDatabase(path)
+    db = SqlCipherDatabase(path,passphrase="dholu11@")
     migrator = SqliteMigrator(db)
 
     # check if bucketmodel has datastr field
