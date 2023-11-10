@@ -89,9 +89,12 @@ def authenticate(username, password):
 
 # Encrypt the UUID
 def reset_user():
-    keyring.delete_password("aw_user", "aw_user")
-    keyring.delete_password("aw_db", "aw_db")
-    keyring.delete_password("aw_data", "aw_data")
+    try:
+        keyring.delete_password("aw_user", "aw_user")
+        keyring.delete_password("aw_db", "aw_db")
+        keyring.delete_password("aw_data", "aw_data")
+    except Exception as e:
+        print(f"Authentication error: {e}")
 
 import requests
 
